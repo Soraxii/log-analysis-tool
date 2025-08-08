@@ -1,0 +1,7 @@
+2023-10-15 08:05:22 INFO: User 'admin' logged in from IP 192.168.1.10
+2023-10-15 08:06:15 ERROR: Failed login attempt for user 'sama' from IP 192.168.1.12
+2023-10-15 08:07:33 INFO: User 'admin' uploaded file 'report.pdf'
+2023-10-15 08:08:45 WARNING: Disk usage exceeded 90% on /dev/sda1
+2023-10-15 08:10:01 ERROR: Database connection timeout
+2023-10-15 08:12:18 INFO: User 'guest' logged in from IP 192.168.1.15
+2023-10-15 08:15:00 WARNING: High CPU usage (95%) detected
