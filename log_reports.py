@@ -2,7 +2,9 @@
 # Amr Ahmed
 import re
 
-with open('app_logs.txt', 'r') as logs:
+log_file = 'app_logs.txt'
+
+with open(log_file, 'r') as logs:
 
     category={}
     time=[]
