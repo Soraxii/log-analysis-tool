@@ -1,8 +1,12 @@
 #!/usr/bin/python3
 # Amr Ahmed
 import re
-
+import os 
+import sys
 log_file = 'app_logs.txt'
+
+if not os.path.exists(log_file):
+    sys.exit(f"ERROR: {log_file} doesn't exist")
 
 with open(log_file, 'r') as logs:
 
