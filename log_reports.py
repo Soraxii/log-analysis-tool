@@ -84,31 +84,33 @@ def log_parsing(file):
 def generate_report(data):  
     '''generates a report based on the data parsed from the log file'''
     try: 
-
-        print("=== Log Analysis Report === ")
-        print(f'Time Range: {data['time'][0]} to {data['time'][-1]}')
-        print("Past Logins:")
+        report =[]
+        report.append("=== Log Analysis Report === ")
+        report.append(f'Time Range: {data['time'][0]} to {data['time'][-1]}')
+        report.append("Past Logins:")
         for suser,sip in data['success_log'].items():
-            print(f'-User \'{suser}\' from IP {sip}')
-        print(f'Total Events: {data['num_events']}')
+            report.append(f'-User \'{suser}\' from IP {sip}')
+        report.append(f'Total Events: {data['num_events']}')
         for code, amount in data['category'].items():
-            print(f'-{code}: {amount}')
+            report.append(f'-{code}: {amount}')
         
-        print('\n')
-        print('=== Security Events === ')
-        print("Failed Logins:")
+        report.append('\n')
+        report.append('=== Security Events === ')
+        report.append("Failed Logins:")
         for fuser,fip in data['failed_users'].items():
-            print(f'-User \'{fuser}\' from IP {fip} ')
+            report.append(f'-User \'{fuser}\' from IP {fip} ')
 
 
-        print('\n')
-        print('=== System Alerts === ')
+        report.append('\n')
+        report.append('=== System Alerts === ')
         for i in range(len(data['warnings'])):
 
-            print(f'{i+1}. {data['warnings'][i]}')
+            report.append(f'{i+1}. {data['warnings'][i]}')
 
     except Exception as e:
         print(f"Error occured while generating the report: {e}")
+
+    return report
 
 
 def main():
@@ -122,7 +124,9 @@ def main():
     log_data = log_parsing(log_file)
     
     # Generates and prints the report
-    generate_report(log_data)
+    data_report = generate_report(log_data)
+
+    print(data_report)
 
 if __name__ == "__main__":
     main()      
