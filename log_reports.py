@@ -6,6 +6,11 @@ import sys
 from datetime import datetime
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+import io
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 
 def log_parsing(file):
     ''' takes the log file as input and parses through it then adds it to a dictionary'''
@@ -86,19 +91,11 @@ def log_parsing(file):
         print(f"Error occured while parsing log file: {e}")
         return None
             
-def generate_report(data, output_path=None):  
-    '''generates a PDF report based on the data parsed from the log file then saves it in the local windows desktop'''
+def generate_report(data):  
+    '''generates an in-memory PDF report based on the data parsed from the log file'''
     try:
-
-        if output_path is None:
-            #saves to local Desktop directory
-            windows_username = 'amrah'  # Your Windows username
-            local_desktop_path = f"/mnt/c/Users/{windows_username}/Desktop"
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            output_path = os.path.join(local_desktop_path, f"log_report_{timestamp}.pdf")
-            print(f"Saving to local Desktop: {output_path}")
-        
-        doc = SimpleDocTemplate(output_path)
+        buffer = io.BytesIO() #creates in-memort byte stream  
+        doc = SimpleDocTemplate(buffer)
 
         style = getSampleStyleSheet()
 
@@ -142,13 +139,46 @@ def generate_report(data, output_path=None):
         elements.append(Spacer(1,12))
 
         doc.build(elements)
-
-        return output_path
+        buffer.seek(0) #moves the cursor to the beginning
+        return buffer
 
     except Exception as e:
 
         print(f"an error occurred while creating the PDF file: {e}")
         return None
+    
+def send_email(smtp_server, sender_email, sender_password, recipient_email, subject, body, attachment_stream):
+    '''takes the parameters and then sends an email using them '''
+    try:
+    
+        #create multipart email message
+        msg = MIMEMultipart()
+        msg['From']=sender_email
+        msg['To']=recipient_email
+        msg['Subject']=subject
+
+        #attach email body
+        msg.attach(MIMEText(body,'plain'))
+
+        #attach report PDF file
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+        attach_name = f"Log_report_{timestamp}.pdf"
+        part =MIMEApplication(attachment_stream.read(), Name = attach_name)
+        part['Content-Disposition'] = f'attachment: filename="{attach_name}"'
+        msg.attach(part)
+
+        print("email created")
+
+        #connect to the smtp server and sends the email
+        smtp_port = 587
+        with smtplib.SMTP(smtp_server,smtp_port) as server:
+            server.starttls() # Upgrade the connection to a secure encrypted SSL/TLS connection
+            server.login(sender_email,sender_password) #logs in to the SMTP server
+            server.send_message(msg) # sends the email
+            print("Email sent succesfully!")
+
+    except Exception as e:
+        print(f"Failed to send Email: {e}")
 
 def main():
     '''Main function that starts the script execution.'''
@@ -163,13 +193,21 @@ def main():
     if log_data is None:
         sys.exit("Failed to parse the log data")
 
-    # Generates and prints the report
+    # Generates report in-memory
     print("Generating Report...")
-    report_path = generate_report(log_data)
+    report_stream = generate_report(log_data)
     
-    if report_path:
+    if report_stream:
         print(f"Report generation completed")
-        print(f"Full path: {report_path}")
+
+        smtp_server = "" #format: smtp.server.com could be smtp.gmail/outlook/yahoo/etc.com
+        sender_email = "" #email address the report will be sent from
+        sender_password = "" #generate an app password and paste the 16-character code
+        recipient_email = "" #email address the report will be sent to
+        subject = "Log Analysis Report"
+        body = 'Please find the attached log analysis report.'
+        
+        send_email(smtp_server, sender_email, sender_password, recipient_email, subject, body, report_stream)
     else:
         print("Failed to generate report")
 
